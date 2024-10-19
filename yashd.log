@@ -1,0 +1,174 @@
+Oct 15 22:11:03 yashd[0.0.0.0:0]: Server started
+Oct 15 22:11:12 yashd[127.0.0.1:49866]: ls
+Oct 15 22:11:28 yashd[127.0.0.1:49866]: echo hello
+Oct 15 22:16:35 yashd[0.0.0.0:0]: Server started
+Oct 15 22:16:50 yashd[127.0.0.1:49929]: ls
+Oct 15 22:17:34 yashd[127.0.0.1:49929]: STOP
+Oct 15 22:17:40 yashd[127.0.0.1:49929]: SUSPEND
+Oct 15 22:17:42 yashd[127.0.0.1:49929]: STOP
+Oct 16 10:53:07 yashd[127.0.0.1:51713]: ls
+Oct 16 10:53:55 yashd[127.0.0.1:51713]: STOP
+Oct 16 10:54:11 yashd[0.0.0.0:0]: Server started
+Oct 16 10:54:32 yashd[127.0.0.1:51745]: ls
+Oct 16 10:56:31 yashd[127.0.0.1:51745]: STOP
+Oct 16 10:56:47 yashd[0.0.0.0:0]: Server started
+Oct 16 10:56:53 yashd[127.0.0.1:51785]: ls
+Oct 17 23:06:04 yashd[0.0.0.0:0]: Server started
+Oct 17 23:06:10 yashd[127.0.0.1:56657]: ls
+Oct 17 23:06:17 yashd[127.0.0.1:56657]: STOP
+Oct 17 23:06:21 yashd[127.0.0.1:56657]: SUSPEND
+Oct 17 23:06:26 yashd[127.0.0.1:56657]: STOP
+Oct 17 23:06:31 yashd[127.0.0.1:56657]: STOP
+Oct 18 12:30:00 yashd[127.0.0.1:56657]: STOP
+Oct 18 12:31:17 yashd[0.0.0.0:0]: Server started
+Oct 18 12:32:15 yashd[127.0.0.1:64588]: ls
+Oct 18 12:34:16 yashd[127.0.0.1:64588]: cat > file.txt
+Oct 18 12:34:30 yashd[127.0.0.1:64588]: ls > file.txt
+Oct 18 12:34:40 yashd[127.0.0.1:64588]: ls | wc
+Oct 18 12:38:16 yashd[127.0.0.1:64588]: STOP
+Oct 18 12:38:51 yashd[127.0.0.1:64804]: STOP
+Oct 18 12:39:02 yashd[127.0.0.1:64817]: jhaskdjfhasdf
+Oct 18 12:39:04 yashd[127.0.0.1:64817]: echo
+Oct 18 12:39:07 yashd[127.0.0.1:64817]: echo hi
+Oct 18 14:08:10 yashd[0.0.0.0:0]: Server started
+Oct 18 14:08:21 yashd[127.0.0.1:65237]: ls
+Oct 18 14:08:25 yashd[127.0.0.1:65237]: STOP
+Oct 18 14:09:18 yashd[0.0.0.0:0]: Server started
+Oct 18 14:09:34 yashd[127.0.0.1:65257]: ls
+Oct 18 14:09:38 yashd[127.0.0.1:65257]: STOP
+Oct 18 14:15:51 yashd[0.0.0.0:0]: Server started
+Oct 18 14:16:00 yashd[127.0.0.1:65299]: ls
+Oct 18 14:16:02 yashd[127.0.0.1:65299]: STOP
+Oct 18 15:04:23 yashd[0.0.0.0:0]: Server started
+Oct 18 15:04:41 yashd[127.0.0.1:65511]: ls
+Oct 18 15:05:00 yashd[127.0.0.1:65511]: sleep 10
+Oct 18 15:05:00 yashd[127.0.0.1:65511]: SUSPEND
+Oct 18 16:16:53 yashd[127.0.0.1:50653]: ls
+Oct 18 16:17:20 yashd[127.0.0.1:50653]: ls | wc
+Oct 18 16:17:32 yashd[127.0.0.1:50653]: STOP
+Oct 18 16:17:35 yashd[127.0.0.1:50653]: ls
+Oct 18 16:17:55 yashd[127.0.0.1:50653]: ls | wc
+Oct 18 16:18:09 yashd[127.0.0.1:50653]: ls > out.txt
+Oct 18 16:18:23 yashd[127.0.0.1:50653]: sleep 4
+Oct 18 16:18:23 yashd[127.0.0.1:50653]: STOP
+Oct 18 16:18:31 yashd[127.0.0.1:50653]: sleep 5
+Oct 18 16:18:31 yashd[127.0.0.1:50653]: SUSPEND
+Oct 18 16:18:47 yashd[127.0.0.1:50653]: sleep 10
+Oct 18 16:18:47 yashd[127.0.0.1:50653]: SUSPEND
+Oct 18 16:23:20 yashd[127.0.0.1:50653]: jobs
+Oct 18 19:29:41 yashd[127.0.0.1:50653]: ls
+Oct 18 19:29:43 yashd[127.0.0.1:50653]: SUSPEND
+Oct 18 19:29:51 yashd[127.0.0.1:50653]: SUSPEND
+Oct 18 19:29:52 yashd[127.0.0.1:50653]: SUSPEND
+Oct 18 19:29:53 yashd[127.0.0.1:50653]: SUSPEND
+Oct 18 19:30:06 yashd[127.0.0.1:50653]: sleep 10
+Oct 18 19:30:06 yashd[127.0.0.1:50653]: SUSPEND
+Oct 18 21:06:32 yashd[0.0.0.0:0]: Server started
+Oct 18 21:06:38 yashd[127.0.0.1:53204]: ls
+Oct 18 21:06:46 yashd[127.0.0.1:53204]: sleep 4
+Oct 18 21:06:46 yashd[127.0.0.1:53204]: STOP
+Oct 18 21:06:56 yashd[127.0.0.1:53204]: sleep 7
+Oct 18 21:06:56 yashd[127.0.0.1:53204]: SUSPEND
+Oct 18 21:08:35 yashd[127.0.0.1:53204]: STOP
+Oct 18 21:08:56 yashd[127.0.0.1:53224]: sleep 5
+Oct 18 21:08:56 yashd[127.0.0.1:53224]: SUSPEND
+Oct 18 21:09:15 yashd[127.0.0.1:53224]: RESUME
+Oct 18 21:11:02 yashd[0.0.0.0:0]: Server started
+Oct 18 21:11:52 yashd[0.0.0.0:0]: Server started
+Oct 18 21:14:08 yashd[0.0.0.0:0]: Server started
+Oct 18 21:18:05 yashd[0.0.0.0:0]: Server started
+Oct 18 21:25:24 yashd[0.0.0.0:0]: Server started
+Oct 18 21:27:23 yashd[0.0.0.0:0]: Server started
+Oct 18 21:29:00 yashd[0.0.0.0:0]: Server started
+Oct 18 21:29:48 yashd[0.0.0.0:0]: Server started
+Oct 18 21:31:18 yashd[0.0.0.0:0]: Server started
+Oct 18 21:32:22 yashd[0.0.0.0:0]: Server started
+Oct 18 21:34:44 yashd[0.0.0.0:0]: Server started
+Oct 18 21:36:55 yashd[0.0.0.0:0]: Server started
+Oct 18 21:40:37 yashd[0.0.0.0:0]: Server started
+Oct 18 21:43:51 yashd[0.0.0.0:0]: Server started
+Oct 18 21:44:56 yashd[0.0.0.0:0]: Server started
+Oct 18 21:47:50 yashd[0.0.0.0:0]: Server started
+Oct 18 21:49:21 yashd[0.0.0.0:0]: Server started
+Oct 18 21:51:56 yashd[0.0.0.0:0]: Server started
+Oct 18 21:53:26 yashd[0.0.0.0:0]: Server started
+Oct 18 21:57:34 yashd[0.0.0.0:0]: Server started
+Oct 18 21:58:18 yashd[0.0.0.0:0]: Server started
+Oct 18 22:08:34 yashd[0.0.0.0:0]: Server started
+Oct 18 22:17:15 yashd[0.0.0.0:0]: Server started
+Oct 18 22:42:04 yashd[0.0.0.0:0]: Server started
+Oct 18 22:42:17 yashd[127.0.0.1:54363]: ls
+Oct 18 22:42:19 yashd[127.0.0.1:54363]: 
+Oct 18 22:42:21 yashd[127.0.0.1:54363]: ls
+Oct 18 22:42:23 yashd[127.0.0.1:54363]: ls
+Oct 18 22:42:25 yashd[127.0.0.1:54363]: ls
+Oct 18 22:42:25 yashd[127.0.0.1:54363]: ls
+Oct 18 22:42:26 yashd[127.0.0.1:54363]: 
+Oct 18 22:42:36 yashd[127.0.0.1:54363]: ls | wc
+Oct 18 22:42:37 yashd[127.0.0.1:54363]: 
+Oct 18 22:44:06 yashd[127.0.0.1:54363]: CTL c
+Oct 18 22:44:06 yashd[127.0.0.1:54363]: 
+Oct 18 22:44:11 yashd[127.0.0.1:54391]: ls
+Oct 18 22:44:12 yashd[127.0.0.1:54391]: ls
+Oct 18 22:44:14 yashd[127.0.0.1:54391]: ls
+Oct 18 22:44:20 yashd[127.0.0.1:54391]: ls | wc
+Oct 18 22:44:23 yashd[127.0.0.1:54391]: 
+Oct 18 22:45:12 yashd[127.0.0.1:54413]: ls
+Oct 18 22:45:13 yashd[127.0.0.1:54413]: 
+Oct 18 22:45:15 yashd[127.0.0.1:54413]: ls
+Oct 18 22:45:16 yashd[127.0.0.1:54413]: 
+Oct 18 22:45:21 yashd[127.0.0.1:54413]: ls | wc
+Oct 18 22:45:22 yashd[127.0.0.1:54413]: 
+Oct 18 22:47:43 yashd[0.0.0.0:0]: Server started
+Oct 18 22:48:14 yashd[0.0.0.0:0]: Server started
+Oct 18 22:48:18 yashd[127.0.0.1:54455]: ls
+Oct 18 22:48:20 yashd[127.0.0.1:54455]: ls | wc
+Oct 18 22:48:22 yashd[127.0.0.1:54455]: 
+Oct 18 22:49:35 yashd[0.0.0.0:0]: Server started
+Oct 18 22:49:45 yashd[0.0.0.0:0]: Server started
+Oct 18 22:49:48 yashd[127.0.0.1:54479]: ls
+Oct 18 22:49:49 yashd[127.0.0.1:54479]: ls
+Oct 18 22:49:50 yashd[127.0.0.1:54479]: 
+Oct 18 22:49:52 yashd[127.0.0.1:54479]: ls
+Oct 18 22:49:53 yashd[127.0.0.1:54479]: 
+Oct 18 22:49:54 yashd[127.0.0.1:54479]: ls
+Oct 18 22:49:55 yashd[127.0.0.1:54479]: 
+Oct 18 22:51:01 yashd[0.0.0.0:0]: Server started
+Oct 18 22:51:05 yashd[127.0.0.1:54500]: ls
+Oct 18 22:51:08 yashd[127.0.0.1:54500]: ls
+Oct 18 22:51:09 yashd[127.0.0.1:54500]: 
+Oct 18 22:51:14 yashd[127.0.0.1:54500]: ls | wc
+Oct 18 22:51:15 yashd[127.0.0.1:54500]: 
+Oct 18 22:53:39 yashd[0.0.0.0:0]: Server started
+Oct 18 22:53:44 yashd[127.0.0.1:54534]: ls
+Oct 18 22:53:48 yashd[127.0.0.1:54534]: 
+Oct 18 22:53:50 yashd[127.0.0.1:54534]: 
+Oct 18 22:53:51 yashd[127.0.0.1:54534]: 
+Oct 18 22:53:52 yashd[127.0.0.1:54534]: 
+Oct 18 22:53:52 yashd[127.0.0.1:54534]: 
+Oct 18 22:53:53 yashd[127.0.0.1:54534]: 
+Oct 18 22:53:53 yashd[127.0.0.1:54534]: ls
+Oct 18 22:53:55 yashd[127.0.0.1:54534]: l
+Oct 19 00:24:27 yashd[127.0.0.1:55338]: ls
+Oct 19 00:34:02 yashd[127.0.0.1:55424]: ls
+
+Oct 19 00:34:13 yashd[127.0.0.1:55424]: cd Desktop
+
+Oct 19 00:34:14 yashd[127.0.0.1:55424]: ls
+
+Oct 19 00:34:26 yashd[127.0.0.1:55424]: cd home
+
+Oct 19 00:34:26 yashd[127.0.0.1:55424]: ls
+
+Oct 19 00:35:30 yashd[127.0.0.1:55424]: ls | wc
+
+Oct 19 00:35:35 yashd[127.0.0.1:55424]: ls
+
+Oct 19 00:36:07 yashd[127.0.0.1:55424]: ls
+
+Oct 19 00:36:08 yashd[127.0.0.1:55424]: ls
+
+Oct 19 00:36:09 yashd[127.0.0.1:55424]: ls | wc
+
+Oct 19 00:36:11 yashd[127.0.0.1:55424]: 
+
