@@ -12,12 +12,11 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 
-
 #define PORT 3820
-#define LOG_FILE "/Users/rajatmonga/Desktop/pp-rm58873/systems-hw-2/yashd.log"
+#define LOG_FILE "/tmp/yashd.log"
 
-// Mutex for logging to ensure thread safety
 pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
+pid_t current_pid = -1; // Global variable to track the child process ID
 
 // Function to reuse port
 void reusePort(int sockfd) {
@@ -70,6 +69,8 @@ void execute_command(const char *command, int client_sock) {
     } else {
         // Parent process
         close(pipe_fd[1]);
+        current_pid = pid; // Store the PID of the child process
+
         char output[1024];
         ssize_t n;
         while ((n = read(pipe_fd[0], output, sizeof(output))) > 0) {
@@ -78,8 +79,49 @@ void execute_command(const char *command, int client_sock) {
         close(pipe_fd[0]);
         waitpid(pid, NULL, 0); // Wait for child process to finish
 
+        current_pid = -1; // Reset the PID after the command is done
         // Send prompt to indicate readiness for next command
         send(client_sock, "\n#", 2, 0);
+    }
+}
+
+// Function to handle CTL commands (c, z, d)
+void handle_ctl_command(const char *ctl_command, int client_sock) {
+    char action = ctl_command[0];
+
+    if (current_pid == -1) {
+        // No current command is running
+        send(client_sock, "No command is currently running\n#", 33, 0);
+        return;
+    }
+
+    switch (action) {
+        case 'c':
+            // Send SIGINT to the current running process
+            if (kill(current_pid, SIGINT) == 0) {
+                send(client_sock, "Command interrupted\n#", 22, 0);
+            } else {
+                send(client_sock, "Failed to interrupt the command\n#", 34, 0);
+            }
+            break;
+        case 'z':
+            // Send SIGTSTP to the current running process
+            if (kill(current_pid, SIGTSTP) == 0) {
+                send(client_sock, "Command suspended\n#", 20, 0);
+            } else {
+                send(client_sock, "Failed to suspend the command\n#", 32, 0);
+            }
+            break;
+        case 'd':
+            // Handle 'd' as an optional cleanup or termination command
+            send(client_sock, "Disconnecting...\n#", 19, 0);
+            close(client_sock); // Close the socket to terminate the connection
+            pthread_exit(NULL); // End the thread
+            break;
+        default:
+            // Unknown control command
+            send(client_sock, "Unknown control command\n#", 25, 0);
+            break;
     }
 }
 
@@ -112,8 +154,8 @@ void *client_handler(void *socket_desc) {
             execute_command(command, sock);
         } else if (strncmp(buffer, "CTL ", 4) == 0) {
             // Handle control commands (e.g., c, z, d)
-            // Currently, this example does not implement specific CTL actions
-            send(sock, "Control commands are not implemented\n#", 35, 0);
+            const char *ctl_command = buffer + 4;
+            handle_ctl_command(ctl_command, sock);
         } else {
             // Treat as plain text
             send(sock, "Invalid command\n#", 17, 0);
@@ -149,7 +191,7 @@ int main() {
     while (1) {
         new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
         if (new_socket < 0) {
-            perror("accept");
+            perror("Accept failed");
             continue;
         }
 
@@ -158,7 +200,7 @@ int main() {
         int *new_sock = malloc(1);
         *new_sock = new_socket;
         if (pthread_create(&client_thread, NULL, client_handler, (void*)new_sock) < 0) {
-            perror("could not create thread");
+            perror("Could not create thread");
             free(new_sock);
         }
 
