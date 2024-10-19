@@ -33,7 +33,7 @@ void daemonize() {
 
     umask(0);
     if (setsid() < 0) exit(EXIT_FAILURE);
-    if (chdir("./") < 0) exit(EXIT_FAILURE);
+    //if (chdir("./") < 0) exit(EXIT_FAILURE);
 
     freopen("/dev/null", "r", stdin);
     freopen("/dev/null", "w", stdout);
