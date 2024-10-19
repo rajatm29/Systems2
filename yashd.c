@@ -13,7 +13,8 @@
 #include <sys/stat.h>
 
 #define PORT 3820
-#define LOG_FILE "/tmp/yashd.log"
+//#define LOG_FILE "/tmp/yashd.log"
+#define LOG_FILE "/Users/rajatmonga/Desktop/pp-rm58873/systems-hw-2/yashd.log"
 
 pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 pid_t current_pid = -1; // Global variable to track the child process ID
@@ -32,7 +33,7 @@ void daemonize() {
 
     umask(0);
     if (setsid() < 0) exit(EXIT_FAILURE);
-    if (chdir("../") < 0) exit(EXIT_FAILURE);
+    if (chdir("./") < 0) exit(EXIT_FAILURE);
 
     freopen("/dev/null", "r", stdin);
     freopen("/dev/null", "w", stdout);
