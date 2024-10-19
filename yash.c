@@ -79,7 +79,6 @@ int main(int argc, char *argv[]) {
 
     // Main loop for user input
     while (running) {
-        printf("# ");
         fflush(stdout);
 
         // Get user input
