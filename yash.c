@@ -90,10 +90,28 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-        // Send the command to the server in the format "CMD <Command_String>\n"
-        char command[1024];
-        snprintf(command, sizeof(command), "CMD %s", buffer);
-        send(sock, command, strlen(command), 0);
+        // Remove newline character from the input
+        buffer[strcspn(buffer, "\n")] = 0;
+
+        // Handle special commands
+        if (strcmp(buffer, "jobs") == 0) {
+            // Send "CMD jobs" to the server
+            const char *command = "CMD jobs\n";
+            send(sock, command, strlen(command), 0);
+        } else if (strcmp(buffer, "fg") == 0) {
+            // Send "CMD fg" to the server
+            const char *command = "CMD fg\n";
+            send(sock, command, strlen(command), 0);
+        } else if (strcmp(buffer, "bg") == 0) {
+            // Send "CMD bg" to the server
+            const char *command = "CMD bg\n";
+            send(sock, command, strlen(command), 0);
+        } else {
+            // Regular command: send it to the server
+            char command[1024];
+            snprintf(command, sizeof(command), "CMD %s\n", buffer);
+            send(sock, command, strlen(command), 0);
+        }
 
         // Read the response from the server
         while ((valread = read(sock, buffer, sizeof(buffer) - 1)) > 0) {
