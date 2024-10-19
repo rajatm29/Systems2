@@ -84,14 +84,10 @@ int main(int argc, char *argv[]) {
 
         // Get user input
         if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
-            // EOF (Ctrl-D) detected
+            // EOF (Ctrl-D) detected, send "CTL d" to server
+            const char *ctl_disconnect = "CTL d\n";
+            send(sock, ctl_disconnect, strlen(ctl_disconnect), 0);
             printf("\nExiting...\n");
-            break;
-        }
-
-        // Check for "quit" command
-        if (strncmp(buffer, "quit", 4) == 0) {
-            printf("Exiting...\n");
             break;
         }
 
