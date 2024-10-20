@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <sys/select.h>
+#include <errno.h>
+#include <fcntl.h>
 
 #define PORT 3820
 
@@ -14,7 +17,7 @@ volatile sig_atomic_t running = 1;
 void handle_sigint(int sig) {
     const char *ctl_stop = "CTL c\n";
     send(sock, ctl_stop, strlen(ctl_stop), 0);
-    printf("\n[Interrupted]\n# ");
+    printf("\n[Interrupted]\n");
     fflush(stdout);
 }
 
@@ -22,7 +25,7 @@ void handle_sigint(int sig) {
 void handle_sigtstp(int sig) {
     const char *ctl_suspend = "CTL z\n";
     send(sock, ctl_suspend, strlen(ctl_suspend), 0);
-    printf("\n[Stopped]\n# ");
+    printf("\n[Stopped]\n");
     fflush(stdout);
 }
 
@@ -88,51 +91,60 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, handle_sigint);
     signal(SIGTSTP, handle_sigtstp);
 
-    // Read initial prompt from server
-    valread = read(sock, buffer, sizeof(buffer) - 1);
-    if (valread > 0) {
-        buffer[valread] = '\0';
-        printf("%s", buffer);
-    } else {
-        printf("Failed to receive initial prompt from server.\n");
-        close(sock);
-        exit(EXIT_FAILURE);
-    }
+    fd_set readfds;
+    int maxfd = sock > STDIN_FILENO ? sock : STDIN_FILENO;
 
-    // Main loop for user input
+    // Main loop for user input and server responses
     while (running) {
+        FD_ZERO(&readfds);
+        FD_SET(STDIN_FILENO, &readfds);
+        FD_SET(sock, &readfds);
+
+        printf("# ");
         fflush(stdout);
 
-        // Get user input
-        if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
-            // EOF (Ctrl-D) detected, send "CTL d" to server
-            const char *ctl_disconnect = "CTL d\n";
-            send(sock, ctl_disconnect, strlen(ctl_disconnect), 0);
-            printf("\nExiting...\n");
+        int activity = select(maxfd + 1, &readfds, NULL, NULL, NULL);
+
+        if (activity < 0 && errno != EINTR) {
+            perror("select error");
             break;
         }
 
-        // Remove newline character from the input
-        buffer[strcspn(buffer, "\n")] = 0;
-
-        // Check if the command is a redirection (cat > or cat >>)
-        if (strncmp(buffer, "cat >", 5) == 0 || strncmp(buffer, "cat >>", 6) == 0) {
-            send_file_content(buffer); // Handle file content redirection
-        } else {
-            // Regular command: send it to the server
-            char command[1024];
-            snprintf(command, sizeof(command), "CMD %s\n", buffer);
-            send(sock, command, strlen(command), 0);
+        if (FD_ISSET(sock, &readfds)) {
+            // Data available from server
+            char recv_buffer[8192];
+            valread = recv(sock, recv_buffer, sizeof(recv_buffer) - 1, 0);
+            if (valread <= 0) {
+                // Connection closed
+                printf("\nServer disconnected.\n");
+                break;
+            }
+            recv_buffer[valread] = '\0';
+            printf("%s", recv_buffer);
+            fflush(stdout);
         }
 
-        // Read the response from the server
-        while ((valread = read(sock, buffer, sizeof(buffer) - 1)) > 0) {
-            buffer[valread] = '\0';
-            printf("%s", buffer);
-
-            // Check if the prompt (#) is received, indicating the end of the response
-            if (strstr(buffer, "\n#") != NULL) {
+        if (FD_ISSET(STDIN_FILENO, &readfds)) {
+            // Input from user
+            if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+                // EOF (Ctrl-D) detected, send "CTL d\n" to server
+                const char *ctl_disconnect = "CTL d\n";
+                send(sock, ctl_disconnect, strlen(ctl_disconnect), 0);
+                printf("\nExiting...\n");
                 break;
+            }
+
+            // Remove newline character from the input
+            buffer[strcspn(buffer, "\n")] = 0;
+
+            // Check if the command is a redirection (cat > or cat >>)
+            if (strncmp(buffer, "cat >", 5) == 0 || strncmp(buffer, "cat >>", 6) == 0) {
+                send_file_content(buffer); // Handle file content redirection
+            } else {
+                // Regular command: send it to the server
+                char command[1024];
+                snprintf(command, sizeof(command), "CMD %s\n", buffer);
+                send(sock, command, strlen(command), 0);
             }
         }
     }
