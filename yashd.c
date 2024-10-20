@@ -147,6 +147,11 @@ void daemonize() {
     if (setsid() < 0) exit(EXIT_FAILURE);
     //if (chdir("./") < 0) exit(EXIT_FAILURE);
 
+    /* Close all file descriptors that are open */
+    int k;
+    for (k = getdtablesize()-1; k>0; k--)
+        close(k);
+
     freopen("/dev/null", "r", stdin);
     freopen("/dev/null", "w", stdout);
     freopen("/dev/null", "w", stderr);
@@ -284,6 +289,7 @@ void handle_fg(int client_sock) {
         printf("%s\n", job->command);
         kill(job->pid, SIGCONT);
         fg_pid = job->pid;
+        tcsetpgrp(STDIN_FILENO, fg_pid); //terminal control to fg process
         int status;
         waitpid(job->pid, &status, WUNTRACED);
         fg_pid = 0;
