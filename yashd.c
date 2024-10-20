@@ -79,6 +79,58 @@ void print_jobs(int client_sock) {
     send(client_sock, "\n#", 2, 0);
 }
 
+void handle_file_redirection(const char *command, int client_sock) {
+    char filename[1024];
+    int append_mode = 0;
+
+    // Parse the filename and determine if append mode is used
+    if (sscanf(command, "cat > %1023s", filename) == 1) {
+        append_mode = 0; // Write mode
+    } else if (sscanf(command, "cat >> %1023s", filename) == 1) {
+        append_mode = 1; // Append mode
+    } else {
+        send(client_sock, "Invalid redirection command\n#", 29, 0);
+        return;
+    }
+
+    // Open the file for writing or appending
+    FILE *file = fopen(filename, append_mode ? "a" : "w");
+    if (file == NULL) {
+        send(client_sock, "Failed to open file\n#", 21, 0);
+        return;
+    }
+
+    // Read content from the client until "#EOF\n" is received
+    char buffer[1024];
+    char recv_buffer[4096] = {0};
+    ssize_t n;
+
+    while ((n = recv(client_sock, buffer, sizeof(buffer) - 1, 0)) > 0) {
+        buffer[n] = '\0';
+        // Append received data to recv_buffer
+        strncat(recv_buffer, buffer, n);
+
+        char *eof_marker;
+        while ((eof_marker = strstr(recv_buffer, "#EOF\n")) != NULL) {
+            *eof_marker = '\0'; // Null-terminate at EOF marker
+            fputs(recv_buffer, file); // Write up to EOF marker
+            fclose(file);
+            send(client_sock, "File written successfully\n#", 26, 0);
+            send(client_sock, "\n#", 2, 0);
+            return;
+        }
+
+        // If no EOF marker, write the whole buffer and continue
+        fputs(recv_buffer, file);
+        recv_buffer[0] = '\0'; // Clear recv_buffer
+    }
+
+    // If we exit the loop without finding EOF, there was an error
+    fclose(file);
+    send(client_sock, "Error: Unexpected end of input\n#", 32, 0);
+    send(client_sock, "\n#", 2, 0);
+}
+
 // Function to reuse port
 void reusePort(int sockfd) {
     int opt = 1;
@@ -115,8 +167,13 @@ void log_command(const char *client_ip, int port, const char *command) {
 }
 
 // Function to execute a command and send output to the client
-// Function to execute a command and send output to the client
 void execute_command(const char *command, int client_sock) {
+    // Handle file redirection for cat > or cat >>
+    if (strncmp(command, "cat >", 5) == 0 || strncmp(command, "cat >>", 6) == 0) {
+        handle_file_redirection(command, client_sock);
+        return;
+    }
+
     int pipe_fd[2];
     pipe(pipe_fd);
     pid_t pid = fork();
@@ -124,6 +181,7 @@ void execute_command(const char *command, int client_sock) {
     int is_background = 0;
     char trimmed_command[1024];
     strncpy(trimmed_command, command, sizeof(trimmed_command) - 1);
+    trimmed_command[sizeof(trimmed_command) - 1] = '\0'; // Ensure null termination
 
     size_t len = strlen(trimmed_command);
     if (len > 0 && trimmed_command[len - 1] == '&') {
@@ -143,12 +201,12 @@ void execute_command(const char *command, int client_sock) {
     } else { // Parent process
         close(pipe_fd[1]);
 
-        // Add the job to the job list
+        // Add job to job list
         add_job(pid, trimmed_command, is_background == 1 ? "Running" : "Foreground");
 
         if (is_background == 0) {
-            // Foreground job: wait for it to finish
-            fg_pid = pid; // Set foreground job PID
+            // Wait for foreground job to finish
+            fg_pid = pid;
             char output[1024];
             ssize_t n;
             while ((n = read(pipe_fd[0], output, sizeof(output))) > 0) {
@@ -156,20 +214,19 @@ void execute_command(const char *command, int client_sock) {
             }
             close(pipe_fd[0]);
             int status;
-            waitpid(pid, &status, WUNTRACED); // Wait for the foreground process to finish
+            waitpid(pid, &status, WUNTRACED);
             fg_pid = 0;
 
-            // Remove the job if it completed successfully
+            // Remove completed job from list
             if (!WIFSTOPPED(status)) {
                 remove_job(jobs[job_count - 1].job_id);
             }
         } else {
-            // Background job: don't wait, just close the pipe
+            // Background job, do not wait for it to finish
             close(pipe_fd[0]);
             send(client_sock, "Running in background\n#", 23, 0);
         }
 
-        // Send prompt to indicate readiness for the next command
         send(client_sock, "\n#", 2, 0);
     }
 }
@@ -246,7 +303,6 @@ void handle_bg(int client_sock) {
 }
 
 // Function to handle each client connection
-// Function to handle each client connection
 void *client_handler(void *socket_desc) {
     int sock = *(int*)socket_desc;
     free(socket_desc);
@@ -260,30 +316,48 @@ void *client_handler(void *socket_desc) {
 
     char buffer[1024];
     ssize_t read_size;
+    char recv_buffer[4096] = {0};
 
     send(sock, "\n#", 2, 0);
 
     while ((read_size = recv(sock, buffer, sizeof(buffer) - 1, 0)) > 0) {
         buffer[read_size] = '\0';
+        // Append received data to recv_buffer
+        strncat(recv_buffer, buffer, read_size);
 
-        if (strncmp(buffer, "CMD jobs", 8) == 0) {
-            print_jobs(sock); // Print job list
-        } else if (strncmp(buffer, "CMD fg", 6) == 0) {
-            handle_fg(sock);
-        } else if (strncmp(buffer, "CMD bg", 6) == 0) {
-            handle_bg(sock);
-        } else if (strncmp(buffer, "CMD ", 4) == 0) {
-            const char *command = buffer + 4;
-            log_command(client_ip, client_port, command);
-            execute_command(command, sock);
-        } else {
-            send(sock, "Invalid command\n#", 17, 0);
+        // Process complete lines
+        char *line_end;
+        while ((line_end = strchr(recv_buffer, '\n')) != NULL) {
+            *line_end = '\0'; // Null-terminate the line
+            char *line = recv_buffer;
+
+            // Process the line
+            if (strncmp(line, "CMD jobs", 8) == 0) {
+                print_jobs(sock);
+            } else if (strncmp(line, "CMD fg", 6) == 0) {
+                handle_fg(sock);
+            } else if (strncmp(line, "CMD bg", 6) == 0) {
+                handle_bg(sock);
+            } else if (strncmp(line, "CMD ", 4) == 0) {
+                const char *command = line + 4;
+                log_command(client_ip, client_port, command);
+                execute_command(command, sock);
+            } else if (strncmp(line, "CTL ", 4) == 0) {
+                handle_ctl_command(line + 4, sock);
+            } else {
+                send(sock, "Invalid command\n#", 17, 0);
+            }
+
+            // Move remaining data to the start of recv_buffer
+            size_t remaining_len = strlen(line_end + 1);
+            memmove(recv_buffer, line_end + 1, remaining_len + 1);
         }
     }
 
     close(sock);
     pthread_exit(NULL);
 }
+
 
 
 int main() {
