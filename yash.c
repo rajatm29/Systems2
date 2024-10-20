@@ -26,6 +26,28 @@ void handle_sigtstp(int sig) {
     fflush(stdout);
 }
 
+// Function to send file content to server for cat > or cat >>
+void send_file_content(const char *command) {
+    // Notify the server to start file redirection
+    char start_cmd[1024];
+    snprintf(start_cmd, sizeof(start_cmd), "CMD %s\n", command);
+    send(sock, start_cmd, strlen(start_cmd), 0);
+
+    printf("Enter content. Press Ctrl-D to finish:\n");
+
+    // Send user input to the server
+    char buffer[1024];
+    while (fgets(buffer, sizeof(buffer), stdin)) {
+        send(sock, buffer, strlen(buffer), 0);
+    }
+
+    // Indicate the end of file content
+    send(sock, "#EOF\n", 5, 0);
+    printf("[End of input]\n");
+
+    clearerr(stdin); 
+}
+
 // Main function
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -93,19 +115,9 @@ int main(int argc, char *argv[]) {
         // Remove newline character from the input
         buffer[strcspn(buffer, "\n")] = 0;
 
-        // Handle special commands
-        if (strcmp(buffer, "jobs") == 0) {
-            // Send "CMD jobs" to the server
-            const char *command = "CMD jobs\n";
-            send(sock, command, strlen(command), 0);
-        } else if (strcmp(buffer, "fg") == 0) {
-            // Send "CMD fg" to the server
-            const char *command = "CMD fg\n";
-            send(sock, command, strlen(command), 0);
-        } else if (strcmp(buffer, "bg") == 0) {
-            // Send "CMD bg" to the server
-            const char *command = "CMD bg\n";
-            send(sock, command, strlen(command), 0);
+        // Check if the command is a redirection (cat > or cat >>)
+        if (strncmp(buffer, "cat >", 5) == 0 || strncmp(buffer, "cat >>", 6) == 0) {
+            send_file_content(buffer); // Handle file content redirection
         } else {
             // Regular command: send it to the server
             char command[1024];
