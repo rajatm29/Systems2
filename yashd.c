@@ -166,7 +166,6 @@ void log_command(const char *client_ip, int port, const char *command) {
     pthread_mutex_unlock(&log_mutex);
 }
 
-// Function to execute a command and send output to the client
 void execute_command(const char *command, int client_sock) {
     // Handle file redirection for cat > or cat >>
     if (strncmp(command, "cat >", 5) == 0 || strncmp(command, "cat >>", 6) == 0) {
@@ -207,6 +206,7 @@ void execute_command(const char *command, int client_sock) {
         if (is_background == 0) {
             // Wait for foreground job to finish
             fg_pid = pid;
+            current_pid = pid; // Set current_pid to the child PID
             char output[1024];
             ssize_t n;
             while ((n = read(pipe_fd[0], output, sizeof(output))) > 0) {
@@ -216,9 +216,14 @@ void execute_command(const char *command, int client_sock) {
             int status;
             waitpid(pid, &status, WUNTRACED);
             fg_pid = 0;
+            current_pid = -1; // Reset current_pid
 
-            // Remove completed job from list
-            if (!WIFSTOPPED(status)) {
+            // Update job status based on child's exit status
+            if (WIFSTOPPED(status)) {
+                // Update job status to "Stopped"
+                strcpy(jobs[job_count - 1].status, "Stopped");
+            } else {
+                // Remove completed job from list
                 remove_job(jobs[job_count - 1].job_id);
             }
         } else {
@@ -231,8 +236,6 @@ void execute_command(const char *command, int client_sock) {
     }
 }
 
-
-// Function to handle CTL commands (c, z, d)
 void handle_ctl_command(const char *ctl_command, int client_sock) {
     char action = ctl_command[0];
 
@@ -250,6 +253,7 @@ void handle_ctl_command(const char *ctl_command, int client_sock) {
             } else {
                 send(client_sock, "Failed to interrupt the command\n#", 34, 0);
             }
+            send(client_sock, "\n#", 2, 0);
             break;
         case 'z':
             // Send SIGTSTP to the current running process
@@ -258,6 +262,7 @@ void handle_ctl_command(const char *ctl_command, int client_sock) {
             } else {
                 send(client_sock, "Failed to suspend the command\n#", 32, 0);
             }
+            send(client_sock, "\n#", 2, 0);
             break;
         case 'd':
             // Handle 'd' as an optional cleanup or termination command
@@ -271,6 +276,7 @@ void handle_ctl_command(const char *ctl_command, int client_sock) {
             break;
     }
 }
+
 // Handle fg command
 void handle_fg(int client_sock) {
     if (job_count > 0) {
