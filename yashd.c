@@ -197,7 +197,8 @@ void execute_command(const char *command, int client_sock) {
     }
 
     if (pid == 0) { // Child process
-        dup2(pipe_fd[1], STDOUT_FILENO);
+        dup2(pipe_fd[1], STDOUT_FILENO);  //redirect output
+        dup2(pipe_fd[1], STDERR_FILENO);  //redirect err
         close(pipe_fd[0]);
         close(pipe_fd[1]);
         execlp("/bin/sh", "sh", "-c", trimmed_command, NULL);
@@ -262,6 +263,7 @@ void handle_ctl_command(const char *ctl_command, int client_sock) {
             break;
         case 'z':
             // Send SIGTSTP to the current running process
+            printf("PID %d", current_pid);
             if (kill(current_pid, SIGTSTP) == 0) {
                 send(client_sock, "Command suspended\n#", 20, 0);
             } else {
@@ -289,6 +291,7 @@ void handle_fg(int client_sock) {
         printf("%s\n", job->command);
         kill(job->pid, SIGCONT);
         fg_pid = job->pid;
+        strcpy(job->status, "Stopped");
         tcsetpgrp(STDIN_FILENO, fg_pid); //terminal control to fg process
         int status;
         waitpid(job->pid, &status, WUNTRACED);
