@@ -11,73 +11,16 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include "jobs_helper.h"
 
 #define PORT 3820
 //#define LOG_FILE "/tmp/yashd.log"
 #define LOG_FILE "/Users/rajatmonga/Desktop/pp-rm58873/systems-hw-2/yashd.log"
-#define MAX_JOBS 20
-#define MAX_INPUT_SIZE 20
-
-typedef struct {
-    pid_t pid;
-    int job_id;
-    char status[10];
-    char command[MAX_INPUT_SIZE];
-} Job;
 
 pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 pid_t current_pid = -1; // Global variable to track the child process ID
 pid_t fg_pid = 0;
 
-Job jobs[MAX_JOBS];
-int job_count = 0;
-int next_job_id = 1;
-
-void add_job(pid_t pid, char *command, char *status) {
-    if (job_count < MAX_JOBS) {
-        jobs[job_count].pid = pid;
-        jobs[job_count].job_id = next_job_id++;
-        strncpy(jobs[job_count].status, status, sizeof(jobs[job_count].status) - 1);
-        strncpy(jobs[job_count].command, command, sizeof(jobs[job_count].command) - 1);
-        job_count++;
-    }
-}
-
-void remove_job(int job_id) {
-    for (int i = 0; i < job_count; i++) {
-        if (jobs[i].job_id == job_id) {
-            memmove(&jobs[i], &jobs[i+1], (job_count - i - 1) * sizeof(Job));
-            job_count--;
-            break;
-        }
-    }
-}
-
-void print_jobs(int client_sock) {
-    char buffer[2048];
-    int offset = 0;
-
-    // Build the job list output
-    for (int i = 0; i < job_count; i++) {
-        offset += snprintf(buffer + offset, sizeof(buffer) - offset,
-                           "[%d]%c %s %s\n", 
-                           jobs[i].job_id, 
-                           (i == job_count - 1) ? '+' : '-', 
-                           jobs[i].status, 
-                           jobs[i].command);
-    }
-
-    // If no jobs, add a message indicating that
-    if (job_count == 0) {
-        snprintf(buffer, sizeof(buffer), "No jobs\n");
-    }
-
-    // Send the job list to the client
-    send(client_sock, buffer, strlen(buffer), 0);
-
-    // Send the prompt to indicate readiness for the next command
-    send(client_sock, "\n#", 2, 0);
-}
 
 void handle_file_redirection(const char *command, int client_sock) {
     char filename[1024];
@@ -264,6 +207,12 @@ void handle_ctl_command(const char *ctl_command, int client_sock) {
         case 'z':
             // Send SIGTSTP to the current running process
             printf("PID %d", current_pid);
+            Job* temp;
+            temp = find_job(current_pid);
+            if (temp){
+                strcpy(jobs[job_count - 1].status, "Suspended");
+            }
+
             if (kill(current_pid, SIGTSTP) == 0) {
                 send(client_sock, "Command suspended\n#", 20, 0);
             } else {
@@ -291,7 +240,6 @@ void handle_fg(int client_sock) {
         printf("%s\n", job->command);
         kill(job->pid, SIGCONT);
         fg_pid = job->pid;
-        strcpy(job->status, "Stopped");
         tcsetpgrp(STDIN_FILENO, fg_pid); //terminal control to fg process
         int status;
         waitpid(job->pid, &status, WUNTRACED);
